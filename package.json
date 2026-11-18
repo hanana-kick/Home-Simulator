@@ -1,0 +1,13 @@
+{
+  "name": "home-simulator",
+  "version": "4.0.0",
+  "private": true,
+  "type": "module",
+  "description": "주택 3D CAD 뷰어와 옥타브 대역 소음 시뮬레이터",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "dev": "node scripts/serve.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

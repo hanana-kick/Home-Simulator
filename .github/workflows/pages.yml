@@ -23,18 +23,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Assemble standalone viewer and CAD assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p _site/cad _site/references
-          cat source/viewer/part-*.txt > _site/index.html
-          echo 'a1f093c852d001c31db96d481019223361f0a068305fbca4539486759d60cca5  _site/index.html' | sha256sum --check -
-          cp cad/floorplan_3d.step cad/floorplan_3d.dxf cad/floorplan_3d.glb cad/floorplan_3d.scad cad/model.json _site/cad/
-          cp references/*.jpg _site/references/
-          touch _site/.nojekyll
-          test -s _site/index.html
-          test -s _site/cad/floorplan_3d.step
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify acoustics and CAD consistency
+        run: npm test
+      - name: Build viewer and acoustic simulator
+        run: npm run build
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload GitHub Pages artifact

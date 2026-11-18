@@ -4,7 +4,19 @@
 
 **웹 뷰어 (GitHub Pages):** https://hanana-kick.github.io/Home-Simulator/
 
-## 기능
+## Revision 4 · 소음 시뮬레이션
+
+- 벽 높이 **2,300mm**를 3D 뷰어와 STEP/DXF/GLB/SCAD에 동일하게 적용했습니다.
+- 평면도에서 소음원(S)과 청취점(R)을 클릭·드래그하거나 좌표·높이로 지정합니다.
+- 사람 음성, 핑크 노이즈, 화이트 노이즈, 순음을 선택하고 **자유음장 1m 기준 dBA**를 조절합니다.
+- 음성 기본주파수 F0(80–350Hz)와 크기를 독립적으로 조절합니다. 높낮이를 바꿔도 1m dBA는 유지됩니다.
+- 일반 PVC 코팅 실크벽지의 저흡음 표면을 가정합니다. 벽체 차음과 마감 흡음은 분리합니다.
+- 창·문 열림, 벽체 가정, 가구 추가 흡음, 배경 소음을 비교합니다.
+- 고정 범례의 소음 분포, 청취점 소음원 기여/배경, 각 방 중앙의 예상 dBA, 옥타브별 결과를 제공합니다.
+
+**추정 모델:** 125Hz–8kHz 옥타브 에너지, 거리 감쇠, 물리적인 벽·개구부 투과와 방 사이 확산음 전달. 실제 벽체 구조는 확인되지 않았으며, 기본값은 약 200mm 조적·콘크리트 가정입니다. 실크벽지 흡음은 제품 시험값이 아닌 단단한 표면의 대체값입니다. 구조전달음·충격음·우회 전달·저주파 공진·음성 명료도는 계산하지 않습니다. [모델 수치와 출처](https://hanana-kick.github.io/Home-Simulator/acoustic-notes.html).
+
+## 3D 뷰어 기능
 
 - 전체 높이, 1,080mm 단면, 평면 보기를 전환
 - 3D 회전·확대·이동, 평면 보기에서 수직 시점 유지
@@ -23,7 +35,7 @@
 | [cad/floorplan_3d.scad](cad/floorplan_3d.scad) | OpenSCAD 편집용 기하 | mm |
 | [cad/model.json](cad/model.json) | 공간·객체·재질·가정값 모델 데이터 | m |
 
-메인 뷰어는 단일 HTML에 CAD 다운로드 데이터까지 포함합니다. GitHub 업로드 크기 제약을 피하기 위해 원본 HTML(7,650,163 bytes)을 **[source/viewer](source/viewer)** 아래 순서가 있는 16개 조각으로 보관하고, GitHub Actions에서 복원합니다. 복원 후 SHA-256 해시를 검사해 원본과 일치함을 검증합니다.
+웹 코드는 `source/`의 HTML/CSS/JavaScript 모듈로 관리합니다. 모델 데이터, CAD, 참고 이미지는 상대 경로로 불러오며 외부 라이브러리/CDN 없이 동작합니다. 빌드는 `_site/`를 만들고 `build-manifest.json`에 주요 파일 SHA-256을 기록합니다. 기존 단일 HTML 조각은 Git 이력에 보존되어 있습니다.
 
 ## 면적 및 가정
 
@@ -38,11 +50,11 @@
 | 우측 다용도실 | 5㎡ |
 | 마당 | 29㎡ |
 
-벽 높이 **2,700mm**, 벽 두께 **200mm**, 실내 문 높이 **2,100mm**, 마당 담장 높이 **500mm** 등은 원본 평면도에 표시되지 않은 가정값입니다. 실제 시공·구조 검토에는 현장 실측값이 필요합니다. 원본 치수·참고 이미지를 기반으로 만든 시각적 복원 모델입니다.
+벽 높이 **2,300mm**는 사용자 지정값입니다. 벽 두께 **200mm**, 실내 문 높이 **2,100mm**, 마당 담장 높이 **500mm** 등은 원본 평면도에 표시되지 않은 가정값입니다. 기존 2,100mm 이하의 문·가구는 유지하며, 천장에 연결된 창호·벽 상부만 2,300mm 벽 높이에 맞추어 조정했습니다. 실제 시공·구조 검토에는 현장 실측값이 필요합니다. 원본 치수·참고 이미지를 기반으로 만든 시각적 복원 모델입니다.
 
 ## 자동 배포
 
-`main`에 커밋하면 [.github/workflows/pages.yml](.github/workflows/pages.yml)이 정적 뷰어를 조립하고 `_site`를 GitHub Pages로 배포합니다.
+`main`에 커밋하면 [.github/workflows/pages.yml](.github/workflows/pages.yml)이 음향·CAD 정합성 테스트 후 정적 사이트를 빌드하고 `_site`를 GitHub Pages로 배포합니다.
 
 - **처음 사용한다면** 저장소의 **Settings → Pages → Build and deployment → Source: GitHub Actions**를 선택해야 합니다.
 - 개인 GitHub Free에서는 Pages가 **공개 저장소**에서만 지원됩니다. 개인 Pro 이상에서는 비공개 저장소에서 제공할 수 있지만 Pages 사이트는 일반적으로 공개 접근 가능합니다.
@@ -52,6 +64,18 @@
 
 `references/source_plan.jpg`는 원본 치수 평면도, `references/reference_*.jpg`는 이미지 기반 기하와 개구부·재질을 검토하기 위한 입체 참고 이미지입니다.
 
+## 로컬 실행
+
+Node.js 22 이상, 런타임 의존성 없음.
+
+```bash
+npm test
+npm run build
+npm run dev
+```
+
+`http://localhost:4173/`에서 실행합니다. `?mode=viewer`는 3D 뷰어로 시작합니다.
+
 ## 검증 범위
 
-STEP는 FreeCAD import, OpenSCAD CSG 컴파일, GLB/DXF 기하 정합성 및 소프트웨어 렌더링 테스트를 통과한 Revision 3 모델입니다. 브라우저의 실제 WebGL 경로는 아직 별도 테스트가 필요합니다.
+Revision 3의 형상 기반을 유지하면서 Revision 4의 벽 높이를 갱신했습니다. 자동 테스트는 모델/STEP/DXF/GLB/SCAD 높이 정합성, 음원 dBA 정규화, 거리 감쇠, 문 열림, 방 사이 에너지 전달, 유한한 히트맵 결과를 검사합니다. 음향 결과는 현장 실측으로 보정한 값이 아닙니다.
