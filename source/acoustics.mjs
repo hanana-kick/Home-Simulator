@@ -90,10 +90,11 @@ export const WALL_PROFILES = Object.freeze({
 });
 
 export const SOURCE_PRESETS = Object.freeze({
-  quiet: { label: '작은 목소리', type: 'voice', level: 45, pitch: 160 },
+  quiet: { label: '작은 목소리', type: 'voice', level: 54, pitch: 160 },
   conversation: { label: '보통 대화', type: 'voice', level: 60, pitch: 160 },
-  raised: { label: '큰 목소리', type: 'voice', level: 72, pitch: 160 },
-  shout: { label: '고함', type: 'voice', level: 85, pitch: 160 },
+  raised: { label: '약간 큰 목소리', type: 'voice', level: 66, pitch: 160 },
+  loud: { label: '큰 목소리', type: 'voice', level: 72, pitch: 160 },
+  shout: { label: '매우 큰 목소리', type: 'voice', level: 78, pitch: 160 },
 });
 
 const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
@@ -244,7 +245,7 @@ export function createAcousticModel(data) {
     const axis = associatedOpening?.axis || (o.s[0] <= o.s[2] ? 'x' : 'z');
     const normal = axis === 'x' ? 0 : 2, span = axis === 'x' ? 2 : 0;
     return {
-      id: o.id, label: o.label, type: 'wall', axis, k: o.p[normal],
+      id: o.id, label: o.label, group: o.group, type: 'wall', axis, k: o.p[normal],
       lo: o.p[span] - o.s[span] / 2, hi: o.p[span] + o.s[span] / 2,
       bottom: Math.max(0, o.p[1] - o.s[1] / 2), top: Math.min(wallHeight, o.p[1] + o.s[1] / 2),
       thickness: o.s[normal],
@@ -426,10 +427,14 @@ export function createAcousticModel(data) {
     return cache;
   }
 
-  function evaluatePrepared(prepared, receiver, detail = true) {
-    if (!isPositionValid(receiver)) throw new RangeError('청취점을 바닥 영역 안, 천장 아래에 배치하세요.');
+  function evaluatePrepared(prepared, receiver, detail = true, allowExterior = false) {
+    const exteriorPointRoom = roomAt(receiver?.x, receiver?.z);
+    const exteriorPointValid = allowExterior && [receiver?.x, receiver?.y, receiver?.z].every(Number.isFinite)
+      && receiver.y >= 0.05 && receiver.y <= wallHeight - 0.05
+      && (!exteriorPointRoom || exteriorPointRoom.kind === 'exterior');
+    if (!isPositionValid(receiver) && !exteriorPointValid) throw new RangeError('청취점을 바닥 영역 안, 천장 아래에 배치하세요.');
     const { source, settings, sourceBands, diffuse, rt60, exteriorPatches } = prepared;
-    const receiverRoom = roomAt(receiver.x, receiver.z), receiverIndex = roomIndex.get(receiverRoom.id) ?? -1;
+    const receiverRoom = roomAt(receiver.x, receiver.z), receiverIndex = roomIndex.get(receiverRoom?.id) ?? -1;
     const r = distance(source, receiver), effectiveR = Math.max(MIN_DISTANCE, r);
     const path = trace(source, receiver, settings, detail);
     const direct = sourceBands.map((value, b) => value / (effectiveR * effectiveR) * path.energies[b]);
@@ -456,7 +461,7 @@ export function createAcousticModel(data) {
     const result = {
       levelDbA: weighted(total), sourceOnlyDbA: weighted(sourceOnly),
       directDbA: weighted(direct), reverberantDbA: weighted(reverberant),
-      distance: r, roomId: receiverRoom.id,
+      distance: r, roomId: receiverRoom?.id || null,
       rt60: receiverIndex < 0 ? null : [...rt60[receiverIndex]],
     };
     if (detail) Object.assign(result, {
@@ -470,6 +475,14 @@ export function createAcousticModel(data) {
 
   function evaluate(source, receiver, settings = {}) {
     return evaluatePrepared(prepare(source, settings), receiver);
+  }
+
+  // Used by an explicitly hypothetical neighbouring facade outside this plan.
+  // This does not widen normal interactive source/receiver placement limits.
+  function evaluateExterior(source, receiver, settings = {}) {
+    const room = roomAt(receiver.x, receiver.z);
+    if (room && room.kind !== 'exterior') throw new RangeError('외부 수음점은 기존 집 실내에 둘 수 없습니다.');
+    return evaluatePrepared(prepare(source, settings), receiver, true, true);
   }
 
   function sampleGrid(source, settings = {}, options = {}) {
@@ -496,5 +509,5 @@ export function createAcousticModel(data) {
     });
   }
 
-  return { rooms, barriers, openings, bounds, wallHeight, roomAt, isPositionValid, evaluate, sampleGrid, roomSummary };
+  return { rooms, barriers, openings, bounds, wallHeight, roomAt, isPositionValid, evaluate, evaluateExterior, sampleGrid, roomSummary };
 }

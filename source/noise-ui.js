@@ -11,7 +11,7 @@ const rounded = value => Number.isFinite(value) ? String(Math.round(value)) : 'â
 const coord = value => Number(value).toFixed(2);
 const roomOptions = rooms => rooms.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
 
-export function initNoiseUI(data) {
+export function initNoiseUI(data, { onStateChange } = {}) {
   const model = createAcousticModel(data);
   const source={x:6.7,z:3.8,y:1.5,level:60,pitch:160,type:'voice',frequency:500};
   const receiver={x:2.9,z:3.2,y:1.2};
@@ -107,7 +107,7 @@ export function initNoiseUI(data) {
       const started=performance.now();receive({id,result:model.evaluate(message.source,message.receiver,message.settings),grid:model.sampleGrid(message.source,message.settings,{step:.16,height:message.receiver.y}),rooms:model.rooms.map(room=>({id:room.id,name:room.name,...model.evaluate(message.source,{x:room.center[0],z:room.center[1],y:message.receiver.y},message.settings)})),elapsed:Math.round(performance.now()-started)});
     }catch(error){receive({id,error:error.message});}
   }
-  function schedule(){pending=true;clearTimeout(timer);timer=setTimeout(requestCalculation,110);drawMap();}
+  function schedule(){pending=true;clearTimeout(timer);timer=setTimeout(requestCalculation,110);drawMap();onStateChange?.();}
   function receive(message){
     if(message.id!==sequence)return;inFlight=false;
     if(queued||timer){queued=false;clearTimeout(timer);timer=0;requestCalculation();return;}
@@ -226,5 +226,19 @@ export function initNoiseUI(data) {
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAudio();});
   resizeObserver=new ResizeObserver(()=>drawMap());resizeObserver.observe(canvas);
   syncPositions();
-  return {activate(){active=true;drawMap();if(!results&&!inFlight)requestCalculation();},deactivate(){active=false;stopAudio();},drawMap};
+  function setSource(patch) {
+    const next={...source};
+    for(const key of ['x','y','z','level','pitch','frequency'])if(Number.isFinite(patch[key]))next[key]=patch[key];
+    if(['voice','pink','white','tone'].includes(patch.type))next.type=patch.type;
+    next.y=Math.max(.2,Math.min(+(data.wallHeightM-.1).toFixed(2),next.y));
+    next.level=Math.max(30,Math.min(100,next.level));next.pitch=Math.max(80,Math.min(350,next.pitch));next.frequency=Math.max(125,Math.min(8000,next.frequency));
+    if(!model.isPositionValid(next))return false;
+    Object.assign(source,next);$('sourceHeight').value=source.y;
+    $('sourceLevel').value=$('sourceLevelNumber').value=source.level;levelUpdated(source.level);
+    $('voicePitch').value=$('voicePitchNumber').value=source.pitch;
+    $('toneFrequency').value=$('toneFrequencyNumber').value=source.frequency;
+    $('noiseType').value=source.type;$('pitchField').hidden=source.type!=='voice';$('voicePresetField').hidden=source.type!=='voice';$('toneField').hidden=source.type!=='tone';
+    stopAudio();syncPositions();schedule();return true;
+  }
+  return {activate(){active=true;drawMap();if(!results&&!inFlight)requestCalculation();},deactivate(){active=false;stopAudio();},getState(){return{source:{...source},sourceRoomId:model.roomAt(source.x,source.z)?.id,settings:structuredClone(settings)};},setSource,beginSourcePlacement(){choosePlacement("source");canvas.focus({preventScroll:true});},openDoorSettings(){$("doorsDetails").open=true;$("doorsDetails").scrollIntoView({block:"center"});$("doorsDetails").querySelector("summary").focus({preventScroll:true});},drawMap};
 }
