@@ -134,8 +134,9 @@ export function initNoiseUI(data) {
     $('noiseSpectrum').replaceChildren();
     for(const [i,frequency] of BANDS.entries()){
       const column=document.createElement('div');column.className='spectrum-column';
-      const val=document.createElement('span');val.textContent=rounded((results.sourceOnlyBandsDb||results.bandsDb)[i]);
-      const bar=document.createElement('div');bar.className='spectrum-bar';bar.style.height=Math.max(2,Math.min(65,(results.sourceOnlyBandsDb||results.bandsDb)[i]/100*65))+'px';
+      const band=(results.sourceOnlyBandsDb||results.bandsDb)[i],hasEnergy=Number.isFinite(band)&&band>-299;
+      const val=document.createElement('span');val.textContent=hasEnergy?rounded(band):'—';if(!hasEnergy)val.title='해당 대역에 소음원 에너지 없음';
+      const bar=document.createElement('div');bar.className='spectrum-bar';bar.style.height=(hasEnergy?Math.max(2,Math.min(65,band/100*65)):0)+'px';
       const label=document.createElement('small');label.textContent=frequency>=1000?frequency/1000+'k':frequency;column.append(val,bar,label);$('noiseSpectrum').append(column);
     }
     const rt=results.rt60?.[3];$('reverbEstimate').textContent=Number.isFinite(rt)&&rt>0?`청취 공간 1kHz 잔향 감쇠시간 추정: ${rt.toFixed(1)}초. 확산음 가정에 따른 값입니다.`:'실외는 실내 잔향시간을 표시하지 않습니다.';
