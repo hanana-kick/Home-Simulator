@@ -161,3 +161,15 @@ test('real house has finite scenario results, no internal junction facades, and 
   const garden = model.evaluate({ ...actualSource, x: 3.2, z: 6.55 }, {}, { boundaryRoomId: 'room14', boundarySide: 'north' });
   assert.ok(Number.isFinite(garden.sourceOnlyDbA));
 });
+
+test('the user-specified adjoining wall remains at the workshop when the source moves', async () => {
+  const data = JSON.parse(await readFile(new URL('../cad/model.json', import.meta.url), 'utf8'));
+  const model = createNeighborModel(data);
+  assert.deepEqual(model.boundaries.filter(face => face.roomId === 'room6').map(face => face.side), ['north']);
+  for (const [x, z] of [[8.9, 1.2], [6.7, 3.8], [2.9, 3.2]]) {
+    const result = model.evaluate({ ...source, x, z, y: 1.5 });
+    assert.equal(result.details.boundaryRoomId, 'room6');
+    assert.equal(result.details.actualBoundarySide, 'north');
+    close(result.details.separatingAreaM2, 2.5 * 2.3);
+  }
+});

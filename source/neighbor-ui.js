@@ -67,10 +67,8 @@ export function initNeighborUI(data, { getAcousticState, setSource, onChooseSour
   if (!stage || !sidebar) throw new Error('이웃집 영향 화면의 표시 영역이 없습니다.');
   const model = createNeighborModel(data);
   const config = { ...NEIGHBOR_DEFAULTS };
-  const initialState = getAcousticState();
-  const initialRoomId = initialState.sourceRoomId ?? data.rooms.find(room => insideRoom(room, initialState.source.x, initialState.source.z))?.id;
-  const initialBoundary = model.boundaries.find(face => face.roomId === initialRoomId);
-  if (initialBoundary) { config.boundaryRoomId = initialRoomId; config.boundarySide = initialBoundary.side; }
+  // The adjoining dwelling is fixed at the workshop wall, independently of
+  // where the user later moves the source. Room size/material remain assumed.
   const scenarioIds = Object.keys(NEIGHBOR_SCENARIOS);
   const overrides = Object.fromEntries(scenarioIds.map(id => [id, { ...NEIGHBOR_SCENARIOS[id] }]));
   const interiorRooms = data.rooms.filter(room => room.kind === 'interior');
@@ -81,7 +79,7 @@ export function initNeighborUI(data, { getAcousticState, setSource, onChooseSour
   sidebar.classList.add('neighbor-sidebar');
   stage.innerHTML = `<div class="neighbor-stage-inner">
     <div class="neighbor-title-row"><div><p class="neighbor-eyebrow">NEIGHBOR IMPACT</p><h2>이웃집에 전달되는 소리</h2></div><div class="neighbor-title-actions"><span class="neighbor-compute-status" id="neighborStatus" role="status">계산 대기</span><a class="neighbor-jump-link" href="#neighborSidebar">조건 설정으로 ↓</a></div></div>
-    <div class="neighbor-assumption-banner"><strong>이웃집 구조 미입력 · 아래 조건을 가정한 비교</strong><p>수신 위치는 가정한 이웃 방의 공간 평균입니다. 실내 소음 지도의 한 지점 결과와는 기준이 다릅니다.</p></div>
+    <div class="neighbor-assumption-banner"><strong>이웃집은 작업실 벽에 접함 · 방 크기와 벽체는 입력 가정</strong><p>기본 접면은 도면 위쪽 작업실 벽입니다. 아래 수치는 정상상태 에너지 모델의 방 평균이며, 시간에 따른 압력은 ‘음파 시뮬레이션’에서 계산합니다.</p></div>
     <section class="neighbor-route-section" aria-label="가정한 소음 전달 경로"><div class="neighbor-section-caption"><h3>가정한 전달 경로</h3><span>실제 배치·축척 아님</span></div><div class="neighbor-route-diagram" id="neighborRouteDiagram">
       <div class="neighbor-home-node"><span class="neighbor-node-eyebrow">우리집</span><strong id="neighborSourcePlace">—</strong><p id="neighborSourcePosition"></p><span class="neighbor-node-room" id="neighborBoundaryRoom">—</span></div>
       <div class="neighbor-route-connector"><span class="neighbor-route-arrow" aria-hidden="true">→</span><strong id="neighborRouteLabel">—</strong><span id="neighborRouteDetail"></span></div>
@@ -167,7 +165,10 @@ export function initNeighborUI(data, { getAcousticState, setSource, onChooseSour
     const available = isFloor(config.route) ? Math.min(room?.modelAreaM2 ?? room?.area ?? 0, config.receiverFloorAreaM2) : config.route === 'detached' ? face?.facadeAreaM2 * Math.min(data.wallHeightM, config.receiverHeightM) / data.wallHeightM : face?.availableAreaM2;
     $('neighborBoundaryNote').textContent = isFloor(config.route)
       ? '선택한 방의 천장 또는 바닥 건너편에 이웃 방을 가정합니다. 발걸음·의자 끌기 등의 충격음은 포함하지 않습니다.'
-      : config.route === 'shared-wall' ? '현재 외벽 위치에 이웃 방을 붙인 가정입니다. 실제 인접 세대의 위치를 의미하지 않습니다.' : '선택한 외벽에서 나온 소리가 실외를 거쳐 이웃 방으로 전달되는 가정입니다.';
+      : config.route === 'shared-wall' ? config.boundaryRoomId === 'room6' && config.boundarySide === 'north'
+        ? '사용자 지정: 이웃집은 작업실 벽에 붙어 있습니다. 도면에서 유일한 외부 접면인 위쪽 벽을 사용합니다. 이웃 방 크기와 벽체는 가정값입니다.'
+        : '사용자 지정 접면은 작업실 위쪽 벽입니다. 현재는 다른 접면을 선택한 비교 조건입니다.'
+      : '선택한 외벽에서 나온 소리가 실외를 거쳐 이웃 방으로 전달되는 비교 가정입니다.';
     $('neighborAreaNote').textContent = Number.isFinite(available) ? `선택한 면의 최대 ${available.toFixed(2)} m² 이내로 계산합니다. 입력 면적이 더 크면 이 값으로 제한됩니다.` : '선택한 경계의 실제 면적 이내로 계산합니다.';
     $('neighborPartition').innerHTML = isFloor(config.route)
       ? option('floor', '콘크리트 슬래브 약 150 mm · 가정') + option('masonry', '콘크리트 약 200 mm · 비교 가정') + option('lightweight', '경량 구조 · 비교 가정')

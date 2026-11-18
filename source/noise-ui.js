@@ -13,7 +13,7 @@ const roomOptions = rooms => rooms.map(r=>`<option value="${r.id}">${r.name}</op
 
 export function initNoiseUI(data, { onStateChange } = {}) {
   const model = createAcousticModel(data);
-  const source={x:6.7,z:3.8,y:1.5,level:60,pitch:160,type:'voice',frequency:500};
+  const source={x:8.9,z:1.2,y:1.5,level:60,pitch:160,type:'voice',frequency:500};
   const receiver={x:2.9,z:3.2,y:1.2};
   const settings={wallProfile:'masonry',doorStates:{},furnished:true,background:30};
   let placement='source', results=null, grid=null, roomResults=[], active=false, pending=false, sequence=0, timer=0, inFlight=false, queued=false, pointer=null, dragStart=null, mapGeometry=null, resizeObserver;
@@ -53,7 +53,7 @@ export function initNoiseUI(data, { onStateChange } = {}) {
     </section>
     <details class="noise-details"><summary>계산 가정과 근거</summary><div class="model-note"><strong>공기전달음의 상대 비교</strong><p>거리 감쇠, 벽·창·문 투과와 방 사이의 확산음 에너지 전달을 계산합니다. 실크벽지 흡음계수는 단단한 표면의 대체값이며 제품 시험값이 아닙니다.</p><p>실제 구조·틈새·천장과 바닥을 통한 우회 전달, 충격음, 저주파 공진 및 음성 명료도는 재현하지 않습니다. 실측 소음도와 동일한 값으로 해석할 수 없습니다.</p><p>소음원 0.25m 이내는 근접장 특이점을 막기 위해 거리를 0.25m로 제한합니다. 표시용 천장 생략과 무관하게 실내 천장을 포함합니다.</p><p><a href="./acoustic-notes.html" target="_blank" rel="noopener">모델·재질 수치와 출처 보기</a></p></div></details>`;
 
-  $('sourceRoom').value='room17'; $('receiverRoom').value='room14';
+  $('sourceRoom').value='room6'; $('receiverRoom').value='room14';
   for (const [index,o] of data.openings.entries()) {
     const id=`opening-${index}`; settings.doorStates[id]=false;
     const label=document.createElement('label'); label.className='door-row';

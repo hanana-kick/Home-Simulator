@@ -14,9 +14,9 @@ export const NEIGHBOR_PARTITIONS = Object.freeze({
 });
 
 export const NEIGHBOR_DEFAULTS = Object.freeze({
-  route: 'shared-wall', boundaryRoomId: 'room14', boundarySide: 'north', gapM: 3,
-  partitionProfile: 'masonry', tlOffsetDb: 0, separatingAreaM2: 8,
-  receiverFloorAreaM2: 14, receiverHeightM: 2.3, receiverRt60: 0.5,
+  route: 'shared-wall', boundaryRoomId: 'room6', boundarySide: 'north', gapM: 3,
+  partitionProfile: 'masonry', tlOffsetDb: 0, separatingAreaM2: 5.75,
+  receiverFloorAreaM2: 7.5, receiverHeightM: 2.3, receiverRt60: 0.5,
   neighborWindowOpen: false, neighborWindowAreaM2: 1.5, background: 30,
 });
 
