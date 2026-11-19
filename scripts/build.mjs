@@ -22,7 +22,7 @@ for (const [name, content] of sources) {
 }
 for (const name of ['cad', 'references']) await cp(resolve(root, name), resolve(out, name), { recursive: true });
 await writeFile(resolve(out, '.nojekyll'), '');
-const files = ['index.html', 'acoustic-notes.html', 'main.js', 'viewer.js', 'acoustics.mjs', 'noise-ui.js', 'acoustics-worker.js', 'neighbors.mjs', 'neighbor-ui.js', 'neighbor-worker.js', 'wave-engine.mjs', 'wave-audio.mjs', 'wave-worker.js', 'wave-ui.js', 'wave.css', 'styles.css', 'noise.css', 'neighbor.css', 'app-modes.css', 'references.json', 'cad/model.json', 'cad/floorplan_3d.step', 'cad/floorplan_3d.glb', 'cad/floorplan_3d.dxf', 'cad/floorplan_3d.scad'];
+const files = ['index.html', 'acoustic-notes.html', 'main.js', 'viewer.js', 'acoustics.mjs', 'noise-ui.js', 'acoustics-worker.js', 'neighbors.mjs', 'neighbor-ui.js', 'neighbor-worker.js', 'wave-engine.mjs', 'wave-audio.mjs', 'wave-worker.js', 'wave-ui.js', 'wave.css', 'broadband.mjs', 'broadband-ui.js', 'broadband.css', 'broadband-audio.mjs', 'broadband-audio-worker.js', 'broadband-io.mjs', 'styles.css', 'noise.css', 'neighbor.css', 'app-modes.css', 'references.json', 'cad/model.json', 'cad/floorplan_3d.step', 'cad/floorplan_3d.glb', 'cad/floorplan_3d.dxf', 'cad/floorplan_3d.scad'];
 const hashes = {};
 for (const name of files) {
   const data = await readFile(resolve(out, name));

@@ -56,8 +56,8 @@ export function initWaveUI(data, { getAcousticState, setSource, onChooseSourcePo
 
   stage.classList.add('wave-stage'); sidebar.classList.add('wave-sidebar');
   stage.innerHTML = `<div class="wave-stage-inner">
-    <div class="wave-title-row"><div><p class="wave-eyebrow">3D ACOUSTIC WAVE FIELD</p><h2>음파 시뮬레이션</h2></div><div class="wave-title-actions"><span class="wave-status" id="waveStatus" role="status">실행 전</span><a class="wave-jump-link" href="#waveSidebar">계산 조건으로 ↓</a></div></div>
-    <div class="wave-context"><strong>작업실의 도면 위쪽 벽에 이웃 방이 접한 조건</strong><p id="waveGeometrySummary">이웃 방 폭 2.5m · 깊이 3m · 높이 2.3m 가정. 집 전체의 3차원 음압을 계산하고 수평 단면을 표시합니다.</p></div>
+    <div class="wave-title-row"><div><p class="wave-eyebrow">3D ACOUSTIC WAVE FIELD</p><h2>저주파 음파 분석</h2></div><div class="wave-title-actions"><span class="wave-status" id="waveStatus" role="status">실행 전</span><a class="wave-jump-link" href="#waveSidebar">계산 조건으로 ↓</a></div></div>
+    <div class="wave-context"><strong>작업실의 도면 위쪽 벽에 이웃 방이 접한 조건</strong><p id="waveGeometrySummary">이웃 방 폭 2.5m · 깊이 3m · 높이 2.3m 가정. 저주파의 3차원 음압 단면입니다. 대화·방송·노래의 광대역 비교는 ‘이웃집 소음’에서 계산합니다.</p></div>
     <section class="wave-field-card" aria-label="3차원 음압장의 수평 단면">
       <div class="wave-field-toolbar"><div class="wave-view-group"><div class="wave-view-tabs" aria-label="표시할 계산량"><button type="button" id="wavePressureView" aria-pressed="true">순간 음압</button><button type="button" id="waveRmsView" aria-pressed="false">누적 RMS</button></div><button type="button" class="wave-focus-button" id="waveFocusNeighbor" aria-pressed="false">이웃집 확대</button></div><label class="wave-slice-control" for="waveSliceHeight">단면 높이 <input id="waveSliceHeight" type="range" min="0.2" max="2.2" step="0.1" value="${config.sliceY}"><output id="waveSliceHeightValue">1.2 m</output></label></div>
       <div class="wave-map-wrap"><canvas id="waveCanvas" class="wave-canvas" tabindex="0" aria-label="집과 이웃 방의 계산 음압 수평 단면. 소음원 위치 지정 버튼을 누른 후 클릭하거나 방향키로 이동할 수 있습니다."></canvas><p class="wave-map-state" id="waveMapState">평면·경계 미리보기 · 시작을 누르면 음압을 계산합니다.</p></div>
@@ -184,7 +184,7 @@ export function initWaveUI(data, { getAcousticState, setSource, onChooseSourcePo
     $('waveTimeStep').textContent = Number.isFinite(info.dt) ? `시간 간격 ${(info.dt * 1e6).toFixed(1)} µs · 파장당 10격자 기준 상한` : '파장당 10격자를 확보하는 주파수까지만 입력합니다.';
     $('waveBandNote').textContent = `현재 격자 ${config.dx}m의 계산 대역 상한은 약 ${Math.round(info.cutoffHz)}Hz입니다. 입력의 높은 주파수 성분은 제외하며, 이를 다시 증폭하지 않습니다. 전체 음성의 들림이나 음성 명료도를 이 단면으로 판정할 수 없습니다.`;
     $('waveGridCaption').textContent = metadata ? `격자 ${metadata.domain.nx} × ${metadata.domain.ny} × ${metadata.domain.nz} · ${metadata.airCells.toLocaleString()} 공기 셀` : `수평 격자 ${config.dx} m · 계산 전`;
-    $('waveGeometrySummary').textContent = `이웃 방 폭 2.5m · 깊이 ${config.neighborDepth}m · 높이 2.3m 가정. 집 전체의 3차원 음압을 계산하고 수평 단면을 표시합니다.`;
+    $('waveGeometrySummary').textContent = `이웃 방 폭 2.5m · 깊이 ${config.neighborDepth}m · 높이 2.3m 가정. 저주파의 3차원 음압 단면입니다. 대화·방송·노래의 광대역 비교는 ‘이웃집 소음’에서 계산합니다.`;
     $('waveToneFrequency').max = cutoff;
     $('wavePitchField').hidden = !voiceMode(config.sourceMode);
     $('waveToneField').hidden = config.sourceMode !== 'tone';

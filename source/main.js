@@ -1,6 +1,6 @@
 import { initViewer } from './viewer.js';
 import { initNoiseUI } from './noise-ui.js';
-import { initNeighborUI } from './neighbor-ui.js';
+import { initBroadbandUI } from './broadband-ui.js';
 import { initWaveUI } from './wave-ui.js';
 async function readJSON(path) {
   const r = await fetch(path);
@@ -12,9 +12,10 @@ try {
   const viewer = initViewer(data, references);
   let neighbor, wave;
   const noise = initNoiseUI(data, { onStateChange: () => { neighbor?.refresh(); wave?.refresh(); } });
-  neighbor = initNeighborUI(data, {
+  neighbor = initBroadbandUI(data, {
     getAcousticState: () => noise.getState(),
     setSource: patch => noise.setSource(patch),
+    setAcousticState: state => noise.setAcousticState(state),
     onChooseSourcePosition: target => {
       setMode('noise');
       if (target === 'openings') noise.openDoorSettings();
@@ -32,7 +33,7 @@ try {
   });
   const app = document.querySelector('#app');
   function setMode(mode) {
-    mode = ['viewer', 'noise', 'neighbor', 'wave'].includes(mode) ? mode : 'wave';
+    mode = ['viewer', 'noise', 'neighbor', 'wave'].includes(mode) ? mode : 'neighbor';
     app.classList.toggle('mode-noise', mode === 'noise');
     app.classList.toggle('mode-neighbor', mode === 'neighbor');
     app.classList.toggle('mode-wave', mode === 'wave');
@@ -46,7 +47,7 @@ try {
     if (mode === 'viewer') viewer.requestDraw();
   }
   document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setMode(button.dataset.mode)));
-  setMode(new URLSearchParams(location.search).get('mode') || 'wave');
+  setMode(new URLSearchParams(location.search).get('mode') || 'neighbor');
 } catch (error) {
   console.error(error);
   const message = document.querySelector('#loadError');

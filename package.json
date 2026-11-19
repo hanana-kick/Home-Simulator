@@ -1,9 +1,9 @@
 {
   "name": "home-simulator",
-  "version": "5.0.0",
+  "version": "6.0.0",
   "private": true,
   "type": "module",
-  "description": "주택 3D CAD 뷰어와 작업실·이웃집의 3차원 시간영역 음파 시뮬레이터",
+  "description": "주택 CAD와 주파수별 실간 차음·녹음 기반 이웃집 소음 비교",
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",

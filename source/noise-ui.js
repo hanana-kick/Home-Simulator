@@ -240,5 +240,25 @@ export function initNoiseUI(data, { onStateChange } = {}) {
     $('noiseType').value=source.type;$('pitchField').hidden=source.type!=='voice';$('voicePresetField').hidden=source.type!=='voice';$('toneField').hidden=source.type!=='tone';
     stopAudio();syncPositions();schedule();return true;
   }
-  return {activate(){active=true;drawMap();if(!results&&!inFlight)requestCalculation();},deactivate(){active=false;stopAudio();},getState(){return{source:{...source},sourceRoomId:model.roomAt(source.x,source.z)?.id,settings:structuredClone(settings)};},setSource,beginSourcePlacement(){choosePlacement("source");canvas.focus({preventScroll:true});},openDoorSettings(){$("doorsDetails").open=true;$("doorsDetails").scrollIntoView({block:"center"});$("doorsDetails").querySelector("summary").focus({preventScroll:true});},drawMap};
+  function setAcousticState(input) {
+    // Validate every field before changing the shared source or opening state.
+    const nextSource={...source,...input?.source}, incoming=input?.settings??{};
+    const ranges={x:[0,11.5],z:[0,8.6],y:[.2,2.2],level:[30,100],pitch:[80,350],frequency:[125,8000]};
+    for(const [key,[min,max]] of Object.entries(ranges))if(!Number.isFinite(nextSource[key])||nextSource[key]<min||nextSource[key]>max)return false;
+    if(!['voice','pink','white','tone'].includes(nextSource.type)||!model.isPositionValid(nextSource))return false;
+    const nextSettings={...settings,doorStates:{...settings.doorStates}};
+    if(incoming.wallProfile!==undefined){if(!['masonry','lightweight'].includes(incoming.wallProfile))return false;nextSettings.wallProfile=incoming.wallProfile;}
+    for(const key of ['furnished','reverberation'])if(incoming[key]!==undefined){if(typeof incoming[key]!=='boolean')return false;nextSettings[key]=incoming[key];}
+    if(incoming.background!==undefined){if(!Number.isFinite(incoming.background)||incoming.background<0||incoming.background>60)return false;nextSettings.background=incoming.background;}
+    for(const [key,value] of Object.entries(incoming.doorStates??{})){
+      if(!(key in nextSettings.doorStates)||![true,false,0,1].includes(value))return false;
+      nextSettings.doorStates[key]=Boolean(value);
+    }
+    Object.assign(settings,nextSettings);
+    $('wallProfile').value=settings.wallProfile;$('acousticFurnished').checked=settings.furnished;
+    $('backgroundLevel').value=$('backgroundLevelNumber').value=settings.background;
+    for(const input of $('doorList').querySelectorAll('input'))input.checked=settings.doorStates[input.dataset.opening];
+    updateDoorCount();return setSource(nextSource);
+  }
+  return {activate(){active=true;drawMap();if(!results&&!inFlight)requestCalculation();},deactivate(){active=false;stopAudio();},getState(){return{source:{...source},sourceRoomId:model.roomAt(source.x,source.z)?.id,settings:structuredClone(settings)};},setSource,setAcousticState,beginSourcePlacement(){choosePlacement("source");canvas.focus({preventScroll:true});},openDoorSettings(){$("doorsDetails").open=true;$("doorsDetails").scrollIntoView({block:"center"});$("doorsDetails").querySelector("summary").focus({preventScroll:true});},drawMap};
 }
